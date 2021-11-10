@@ -42,9 +42,9 @@
 		"primevue": "^3.8.0",
 		"prismjs": "^1.15.0",
 		"sass-loader": "^8.0.2",
-		"vue": "3.0.6",
+		"vue": "3.2.21",
 		"vue-loading-overlay": "^4.0.2",
-		"vue-router": "^4.0.0-0",
+		"vue-router": "^4.0.12",
 		"vuex": "^4.0.0"
 	}
 }
