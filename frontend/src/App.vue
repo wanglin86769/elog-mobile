@@ -4,7 +4,7 @@
         <div class="above-footer-wrapper">
             <Menubar :model="menu">
                 <template #start>
-                    <img alt="logo" src="@/assets/elog_logo.png" style="vertical-align: middle" height="30" class="p-mr-2">
+                    <img alt="logo" src="@/assets/elog_logo.png" style="vertical-align: middle" height="30" class="mr-2">
                     <span class="logo">Elog</span>
                 </template>
             </Menubar>
@@ -20,7 +20,7 @@
         </div>
 
         <div class="layout-footer" style="text-align: center">
-            <span class="footer-text">Copyright © 2021 China Spallation Neutron Source（CSNS）</span>
+            <span class="footer-text">Copyright © 2023 China Spallation Neutron Source（CSNS）</span>
         </div>
 	</div>
 </template>

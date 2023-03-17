@@ -24,6 +24,16 @@ The reasons for implementing a backend besides frontend are as follows,
 
 ![Alt text](frontend/screenshots/architecture.png?raw=true "Title")
 
+## Development environment
+
+A recent version Node.js is required, it has been tested with the following Node.js version,
+
+* Node.js 18.13.0
+
+* Node.js 17.9.1
+
+* Node.js 16.19.0
+
 ## Project setup
 
 ### Configuration

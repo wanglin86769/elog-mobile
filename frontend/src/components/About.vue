@@ -1,8 +1,8 @@
 <template>
 	<div style="width: 90%; margin: auto;">
-        <h4 style="text-align: left; color: RGB(33, 150, 243); margin-bottom: 0px;">1. 软件说明</h4>
+        <h4 style="text-align: left; color: RGB(33, 150, 243); margin-bottom: 0px;">1. Software description</h4>
         <p style="text-indent: 2em">
-            Elog电子日志系统手机版。
+            Mobile web client for PSI Elog.
         </p>
     </div>
 </template>

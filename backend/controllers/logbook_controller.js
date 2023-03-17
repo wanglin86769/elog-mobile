@@ -3,12 +3,19 @@ const HTMLParser = require('node-html-parser');
 const elogConfig = require('../config/logbook.js');
 
 
+// Check if the text is integer
 function isInteger(value) {
     return /^\d+$/.test(value);
 }
 
 
+// Extract log data from the log text
 function parseRawLog(rawLog, logbook) {
+    /** 
+     *  Metadata
+     *  \n========================================\n
+     *  Log text
+     */
     let attributeAndContent = rawLog.split('\n========================================\n');
     let attributesStr = attributeAndContent[0].replace('mailto:', '');
     let attributes = attributesStr.split('\n');
@@ -16,6 +23,7 @@ function parseRawLog(rawLog, logbook) {
 
     let log = {};
 
+    // Process metadata
     for(let attribute of attributes) {
         let key_value = attribute.split(/:(.+)/);
         let key = key_value[0].trim();
@@ -23,13 +31,16 @@ function parseRawLog(rawLog, logbook) {
         log[key] = value;
     }
 
+    // Process attachments
     let attachments = [];
     if(log.Attachment) {
         let attachmentStrs = log.Attachment.split(',');
         for(let a of attachmentStrs) {
+            // Split the attachment item with the number_number_filename format
             let number_number_filename = a.split('_');
             let number = `${number_number_filename[0]}_${number_number_filename[1]}`;
-            let filename = number_number_filename.slice(2).join('_');;
+            // Recover the filename that may be split
+            let filename = number_number_filename.slice(2).join('_');
             let url = `${elogConfig.url}/${logbook}/${number}/${filename}`;
             attachments.push(url);
         }
@@ -42,17 +53,22 @@ function parseRawLog(rawLog, logbook) {
 }
 
 
-// Get logbooks
+// Extract logbooks information from the home page HTML
 exports.findLogbooks = async (req, res, next) => {	
     try {
         let url = elogConfig.url;
         let response = await axios.get(url);
         if(!response || !response.data) {
-            return res.status(500).json({message: '未从elog服务器获取到数据'});
+            return res.status(500).json({message: 'No logbook HTML raw data is obtained from the elog server'});
         }
 
         let root = HTMLParser.parse(response.data);
 
+        /**
+         * Logbook group has class "selgroup"
+         * Logbook has class "sellogbook"
+         * Both entry number and last submission have class "selentries"
+         */
         let values = root.querySelectorAll('.selgroup, .sellogbook, .selentries');
         let indexGroup = -1;
         let indexLogbook = -1;
@@ -86,20 +102,21 @@ exports.findLogbooks = async (req, res, next) => {
 };
 
 
-// Get findMessageIds
-exports.findMessageIds = async (req, res, next) => {	
+// Extract all log IDs for a logbook from the logbook all-logs-displayed-in-one-page HTML
+exports.findMessageIds = async (req, res, next) => {
     try {
         let logbook = req.params.logbook;
-        if(!logbook) return res.status(400).json({message: '未指定logbook'});
+        if(!logbook) return res.status(400).json({message: 'Logbook is not specified'});
 
         let url = `${elogConfig.url}/${logbook}/page`;
 
         let response = await axios.get(url);
         if(!response || !response.data) {
-            return res.status(500).json({message: '未从elog服务器获取到数据'});
+            return res.status(500).json({message: 'No MessageIds HTML raw data is obtained from the elog server'});
         }
 
         let root = HTMLParser.parse(response.data);
+        // Each log has list1 or list2 class with different styles
         let values = root.querySelectorAll('.list1 > a, .list2 > a');
         const ids = new Set();
         for(let value of values) {
@@ -119,17 +136,17 @@ exports.findMessageIds = async (req, res, next) => {
 };
 
 
-// Get logs by lazy loading
+// Get logs by lazy loading, i.e. loading one page at a time to reduce the response time.
 exports.findLogs = async (req, res, next) => {	
     let logbook = req.params.logbook;
-    if(!logbook) return res.status(400).json({message: '未指定logbook'});
+    if(!logbook) return res.status(400).json({message: 'Logbook is not specified'});
     logbook = logbook.replace(' ', '+');
 
     let first = req.query.first;
     let rows = req.query.rows;
 
     if(isNaN(first) || isNaN(rows)) {
-        return res.status(401).json({ message: '未指定起始数据和数量' });
+        return res.status(401).json({ message: 'Starting data and number are not specified' });
     }
     first = parseInt(first);
     rows = parseInt(rows);
@@ -142,9 +159,10 @@ exports.findLogs = async (req, res, next) => {
 
         let response = await axios.get(url);
         if(!response || !response.data) {
-            return res.status(500).json({message: '未从elog服务器获取到HTML信息'});
+            return res.status(500).json({message: 'Logs HTML raw data is not obtained from the elog server'});
         }
 
+        // Obtain logs HTML raw data
         let root = HTMLParser.parse(response.data);
         let values = root.querySelectorAll('.list1 > a, .list2 > a, .listdraft > a');
         const ids = new Set();
@@ -166,9 +184,10 @@ exports.findLogs = async (req, res, next) => {
             promiseArray.push(axios.get(url));
         }
         
+        // Obtain the text raw data for each log
         response = await Promise.all(promiseArray);
         if(!response) {
-            return res.status(500).json({message: '未从elog服务器获取到log数据'});
+            return res.status(500).json({message: 'Log text data is not obtained from the elog server'});
         }
         const rawLogs = response.map((res) => res.data);
 
@@ -186,21 +205,21 @@ exports.findLogs = async (req, res, next) => {
 };
 
 
-// Get single log
+// Extract single log data from the log text
 exports.findSingleLog = async (req, res, next) => {	
     let logbook = req.params.logbook;
-    if(!logbook) return res.status(400).json({message: '未指定logbook'});
+    if(!logbook) return res.status(400).json({message: 'Logbook is not specified'});
     logbook = logbook.replace(' ', '+');
 
     let id = req.params.id;
-    if(!id) return res.status(400).json({message: '未指定log ID'});
+    if(!id) return res.status(400).json({message: 'Log ID is not specified'});
 
     try {
         let url = `${elogConfig.url}/${logbook}/${id}?cmd=download`;
 
         let response = await axios.get(url);
         if(!response || !response.data) {
-            return res.status(500).json({message: '未从elog服务器获取到HTML信息'});
+            return res.status(500).json({message: 'No log text raw data is obtained from the elog server'});
         }
 
         let rawLog = response.data;

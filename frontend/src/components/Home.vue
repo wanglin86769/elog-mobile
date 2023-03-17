@@ -2,17 +2,17 @@
 	<div>
 		<Panel v-for="(item, index) of logbooks" :key="index" :header="item.group" :toggleable="true">
 			<div v-for="(logbook, index) of item.logbooks" :key="index">
-				<div class="p-col-12">
-					<div class="card p-shadow-2" @click="onLogbookClick(logbook.name)">
-							<div class="p-grid">
-								<div class="p-col-9" style="color: RGB(33, 150, 243)">
+				<div class="col-12">
+					<div class="card shadow-2" @click="onLogbookClick(logbook.name)">
+							<div class="grid">
+								<div class="col-9" style="color: RGB(33, 150, 243)">
 									<i class="fa fa-book"></i>
 									<span style="margin-left: .5em;">{{logbook.name}}</span>
 								</div>
-								<div class="p-col-3">
+								<div class="col-3">
 									{{logbook.number}}
 								</div>
-								<div class="p-col-12">
+								<div class="col-12">
 									{{logbook.last}}
 								</div>
 							</div>
@@ -22,17 +22,17 @@
         </Panel>
 
 		<Panel header="Official Demo" :toggleable="true">
-			<div class="p-col-12">
-				<div class="card p-shadow-2" @click="onLogbookClick('Linux Demo')">
-					<div class="p-grid">
-						<div class="p-col-9" style="color: RGB(33, 150, 243)">
+			<div class="col-12">
+				<div class="card shadow-2" @click="onLogbookClick('Linux Demo')">
+					<div class="grid">
+						<div class="col-9" style="color: RGB(33, 150, 243)">
 							<i class="fa fa-book"></i>
 							<span style="margin-left: .5em;">Linux Demo</span>
 						</div>
-						<div class="p-col-3">
+						<div class="col-3">
 							N/A
 						</div>
-						<div class="p-col-12">
+						<div class="col-12">
 							N/A
 						</div>
 					</div>

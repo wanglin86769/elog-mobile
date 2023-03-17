@@ -10,53 +10,30 @@
 			</template>
 
 			<template #list="slotProps">
-				<div class="p-col-12" @click="onLogClick(slotProps.data)">
-					<div v-if="slotProps.data['Day'] && slotProps.data['Month'] && slotProps.data['Year']" style="padding: 1rem;">
-						<div class="p-grid border p-shadow-2">
-							<div class="p-col-6 border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
+				<div class="col-12" @click="onLogClick(slotProps.data)">
+					<div style="padding: 1rem;">
+						<div class="grid border shadow-2">
+							<div class="col-6 border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
 								<!-- # {{currentPageFirstIndex + slotProps.index + 1}} -->
 								<span v-if="!slotProps.data['Date']">Draft</span>
 								<span v-else># {{ slotProps.data['$@MID@$'] }}</span>
 							</div>
-							<div class="p-col-6" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
-								
+							<div class="col-6" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
 								<span v-if="!slotProps.data['Date']">N/A</span>
 								<span v-else>{{ showDateTime(slotProps.data['Date']) }}</span>
 							</div>
-							<div class="p-col-12 border-top" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
+							<div class="col-6 border-top border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
 								{{ slotProps.data['Author'] }}
 							</div>
-							<div class="p-col-12 border-top" :style="{ 'color': 'RGB(33, 150, 243)', 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
-								{{ slotProps.data['note'] }}
-								&nbsp;&nbsp;&nbsp;&nbsp;
-								<i v-if="slotProps.data['Attachment'].length" class="pi pi-paperclip p-text-secondary">{{ slotProps.data['Attachment'].length }}</i>
-							</div>
-						</div>
-					</div>
-					<div v-else style="padding: 1rem;">
-						<div class="p-grid border p-shadow-2">
-							<div class="p-col-6 border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
-								<!-- # {{currentPageFirstIndex + slotProps.index + 1}} -->
-								<span v-if="!slotProps.data['Date']">Draft</span>
-								<span v-else># {{ slotProps.data['$@MID@$'] }}</span>
-							</div>
-							<div class="p-col-6" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
-								
-								<span v-if="!slotProps.data['Date']">N/A</span>
-								<span v-else>{{ showDateTime(slotProps.data['Date']) }}</span>
-							</div>
-							<div class="p-col-6 border-top border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
-								{{ slotProps.data['Author'] }}
-							</div>
-							<div class="p-col-6 border-top" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
+							<div class="col-6 border-top" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
 								<span style="word-wrap: break-word;">{{ slotProps.data['Author Email'] }}</span>
 							</div>
-							<div class="p-col-12 border-top" :style="{ 'color': 'RGB(33, 150, 243)', 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
+							<div class="col-12 border-top" :style="{ 'color': 'RGB(33, 150, 243)', 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
 								{{ slotProps.data['Subject'] }}
 								&nbsp;&nbsp;
 								<i v-if="slotProps.data['Attachment'].length" class="pi pi-paperclip p-text-secondary">{{ slotProps.data['Attachment'].length }}</i>
 							</div>
-							<div class="p-col-12 border-top" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
+							<div class="col-12 border-top" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
 								<div class="max-lines" v-html="slotProps.data['Content']"></div>
 							</div>
 						</div>
@@ -72,7 +49,7 @@
 </template>
 
 <script>
-const dateFormat = require('dateformat');
+import dateFormat from 'dateformat';
 import LogbookService from '../service/LogbookService';
 
 export default {
