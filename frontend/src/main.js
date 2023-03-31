@@ -2,6 +2,7 @@ import { createApp, h } from 'vue';
 import { reactive } from 'vue';
 
 import router from './router';
+import { store } from './store';
 import App from './App.vue';
 
 import PrimeVue from 'primevue/config';
@@ -112,6 +113,7 @@ app.use(PrimeVue, { ripple: true });
 app.use(ConfirmationService);
 app.use(ToastService);
 app.use(router);
+app.use(store);
 app.use(LoadingPlugin, { color: 'RGB(33, 150, 243)' });
 
 app.directive('tooltip', Tooltip);

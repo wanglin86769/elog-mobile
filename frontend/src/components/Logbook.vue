@@ -5,17 +5,23 @@
 					paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" :rowsPerPageOptions="[5,10,25,50,100]"
 					:lazy="true" :totalRecords="totalRecords" @page="onPage($event)"
 					v-model:first="currentPageFirstIndex">
-			<template #header>
+			<!-- <template #header>
 				<div style="text-align: center; color: RGB(33, 150, 243)">{{ logbook.replace('+', ' ') }}</div>
+			</template> -->
+			<template #header>
+				<div class="flex flex-wrap align-items-center justify-content-between gap-2">
+					<span style="font-size: large; color: RGB(33, 150, 243)">{{ logbook.replace('+', ' ') }}</span>
+					<Button v-if="userInfo" label="New" icon="pi pi-plus" rounded raised size="small" @click="onLogCreateClick()" />
+				</div>
 			</template>
 
 			<template #list="slotProps">
 				<div class="col-12" @click="onLogClick(slotProps.data)">
 					<div style="padding: 1rem;">
 						<div class="grid border shadow-2">
-							<div class="col-6 border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
+							<div class="col-6 border-right" :style="{ 'background-color': logHeaderColor(slotProps.index, isDraft(slotProps.data)) }">
 								<!-- # {{currentPageFirstIndex + slotProps.index + 1}} -->
-								<span v-if="!slotProps.data['Date']">Draft</span>
+								<span v-if="isDraft(slotProps.data)">Draft</span>
 								<span v-else># {{ slotProps.data['$@MID@$'] }}</span>
 							</div>
 							<div class="col-6" :style="{ 'background-color': logHeaderColor(slotProps.index, !slotProps.data['Date']) }">
@@ -76,9 +82,11 @@ export default {
 	},
 
 	activated() {
+		// console.log('activated');
     },
 
     deactivated () {
+		// console.log('deactivated');
     },
 
 	methods: {
@@ -110,12 +118,20 @@ export default {
 		onLogClick(log) {
 			this.$router.push({ name: 'log', params: { logbook: this.logbook, id: log[['$@MID@$']] }});
 		},
+		onLogCreateClick() {
+			// let name = this.logbook.replace(' ', '+');
+			this.$router.push({name: 'logedit', params: { logbook: this.logbook, log: 'new' }});
+		},
 		logHeaderColor(index, draft) {
 			if(draft) {
 				return 'RGB(255, 176, 176)';
 			} else {
 				return index % 2 ? 'RGB(255, 255, 176)' : 'RGB(221, 238, 187)';
 			}
+		},
+		isDraft(log) {
+			// If 'Date' is empty or 'Draft' is not empty
+			return !log['Date'] || log['Draft'];
 		},
 		showDate(value) {
             return dateFormat(value, "yyyy-mm-dd");
@@ -129,7 +145,9 @@ export default {
 	},
 
 	computed: {
-		
+		userInfo() {
+            return this.$store.state.authentication.user;
+        },
     }
 
 }
@@ -168,6 +186,5 @@ export default {
   max-height: 4.8em;
   line-height: 1.8em;
 }
-
 
 </style>

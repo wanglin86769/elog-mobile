@@ -1,4 +1,8 @@
+const multer  = require('multer');
+const upload = multer();
 const axios = require('axios');
+const cheerio = require('cheerio');
+const FormData = require('form-data');
 const HTMLParser = require('node-html-parser');
 const elogConfig = require('../config/logbook.js');
 
@@ -232,4 +236,70 @@ exports.findSingleLog = async (req, res, next) => {
     }
     
 };
+
+
+exports.submitLogFormData = [upload.array('attachments', 20), async (req, res, next) => {
+    let logbook = req.params.logbook;
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(req.body)) {
+        if(Array.isArray(value)) {
+            for(let item of value) {
+                formData.append(key, item);
+            }
+        } else {
+            formData.append(key, value);
+        }
+    }
+
+    if(Array.isArray(req.files) && req.files.length) {
+        // for(let file of req.files) {
+        //     attachments.push({
+        //         'name': file.originalname,
+        //         'size': file.size,
+        //         'contentType': file.mimetype,
+        //         'content': file.buffer,
+        //     });
+        // }
+        for(let i=0; i<req.files.length; i++) {
+            let file = req.files[i];
+            /* 
+             * By default, 
+             * if all chars are latin1, then re-decoding
+             */
+            if (!/[^\u0000-\u00ff]/.test(file.originalname)) {
+                file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8')
+            }
+            formData.append(`attfile${i}`, file.buffer, file.originalname);
+        }
+    }
+
+    try {
+        let url = `${elogConfig.url}/${logbook}`;
+        let response = await axios.post(url, formData, {
+            maxRedirects: 0, // Disable HTTP 302 redirection
+            validateStatus: function (status) {
+                return status >= 200 && status < 303; // Resolve only if the status code is less than 303
+            },
+        });
+        if(!response || !response.data) {
+            return res.status(500).json({message: 'No response received when submitting a new log'});
+        }
+
+        let successPattern = /<h1 align="center">You successfully submitted a message<\/h1>/;
+        let redirectPattern = /<html>redir<\/html>/;
+        let data = response.data;
+        let status = response.status;
+
+        if((status === 302 && redirectPattern.test(data)) || successPattern.test(data)) {
+            res.json({ message: 'You successfully submitted a message operation' });
+        } else {
+            res.status(500).json({ message: 'Unknown HTML format is received from Elog server when a log operation is submitted' });
+        }  
+    } catch(error) {
+        console.log(error);
+        res.status(500).json({message: error.message});
+    }
+}];
+
 

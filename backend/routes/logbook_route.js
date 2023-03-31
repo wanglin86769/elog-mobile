@@ -15,5 +15,8 @@ router.get("/logs/:logbook", logbooks.findLogs);
 // Get single log
 router.get("/log/:logbook/:id", logbooks.findSingleLog);
 
+// Submit a log, including creat, update and delete
+router.post('/log/:logbook', logbooks.submitLogFormData);
+
 
 module.exports = router;

@@ -23,5 +23,15 @@ export default class LogbookService {
 		let url = `${config.serverPath}/api/elog/log/${logbook}/${id}`;
 		return axios.get(url).then(res => res.data);
 	}
-	
+
+	// Including creating log, editing log and deleting log
+	submitLogFormData(logbook, formData) {
+		let url = `${config.serverPath}/api/elog/log/${logbook}`;
+		return axios.post(url, formData, {
+			headers:  {
+				'Content-Type': 'multipart/form-data',
+			}
+		}).then(res => res.data);
+	}
+
 }

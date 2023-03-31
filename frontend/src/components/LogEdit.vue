@@ -1,64 +1,61 @@
 <template>
 	<div>
 		<div class="col-12">
-			<h3 style="color: RGB(33, 150, 243); text-align: center; margin-bottom: .5em;">{{ logbook.replace('+', ' ') }}</h3>
+			<!-- <h3 style="color: RGB(33, 150, 243); text-align: center; margin-bottom: .5em;">{{ logbook.replace('+', ' ') }}</h3> -->
 			<div style="padding-left: 1rem; padding-right: 1rem;" class="flex flex-wrap align-items-center justify-content-between gap-2">
-				<!-- <span style="font-size: large; color: RGB(33, 150, 243)">{{ logbook.replace('+', ' ') }}</span> -->
-				<Button v-if="canEdit" label="Edit" icon="fa fa-pencil" severity="warning" rounded raised size="small" @click="onEditClick()" />
-				<Button v-if="canEdit" label="Delete" icon="fa fa-trash" severity="danger" rounded raised size="small" @click="onDeleteClick()" />
+				<span style="font-size: large; color: RGB(33, 150, 243)">{{ logbook.replace('+', ' ') }}</span>
+				<Button v-if="userInfo" label="Submit" icon="fa fa-paper-plane" rounded raised size="small" @click="submitLog()" />
 			</div>
 		</div>
+		
 		<div class="col-12">
-			<div style="padding-bottom: 1rem; padding-left: 1rem; padding-right: 1rem;">
+			<div style="padding-bottom: 0rem; padding-left: 1rem; padding-right: 1rem;">
 				<div class="grid border">
-					<div v-if="isDraft(log)" class="col-12" style="background-color: RGB(255, 176, 176)">
-						<div style="text-align: center">This is a draft message</div>
-					</div>
 					<div class="col-12 border-top" style="background-color: RGB(224, 224, 160)">
-						Message ID: {{ log['$@MID@$'] }}
+						Fields marked with <span style="color: red">*</span> are required
 					</div>
-					<div class="col-12" style="background-color: RGB(224, 224, 160)">
-						Entry time: 
-						<span v-if="!log['Date']">N/A</span>
-						<span v-else>{{ showDateTime(log['Date']) }}</span>
+					<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
+						Entry time:
+					</div>
+					<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187)">
+						{{ entryTime ? showDateTime(entryTime) : 'N/A' }}
 					</div>
 					<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
 						Author:
 					</div>
 					<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187)">
-						{{ log['Author'] }}
+						{{ author }}
 					</div>
 					<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
 						Author Email:
 					</div>
 					<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187)">
-						{{ log['Author Email'] }}
+						{{ authorEmail }}
 					</div>
 					<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
-						Category:
+						Category<span style="color: red">*</span>:
 					</div>
 					<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187)">
-						{{ log['Category'] }}
+						<Dropdown style="width: 100%" class="p-inputtext-sm" placeholder="- please select -" v-model="category" :options="logOptions.categories" :showClear="true"></Dropdown>
 					</div>
 					<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
-						System:
+						System<span style="color: red">*</span>:
 					</div>
 					<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187)">
-						{{ log['System'] }}
+						<Dropdown style="width: 100%" class="p-inputtext-sm" placeholder="- please select -" v-model="system" :options="logOptions.systems" :showClear="true"></Dropdown>
 					</div>
 					<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
-						Subject:
+						Subject<span style="color: red">*</span>:
 					</div>
 					<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187)">
-						{{ log['Subject'] }}
+						<InputText v-model.trim="subject" style="width: 100%" class="p-inputtext-sm" />
 					</div>
-					<!-- <div class="col-12"> -->
-						<div v-html="log['Content']" class="content" style="white-space: pre-wrap;"></div>
-					<!-- </div> -->
+					<Textarea v-model="text" placeholder="Please enter your message here" :autoResize="true" rows="5" style="width: 100%;" />
 
-					<div v-for="(item, index) of log.Attachment" :key="index" class="col-12" style="padding-bottom: 0">
+					<div v-for="(item, index) of attachments" :key="index" class="col-12" style="padding-bottom: 0">
 						<div class="grid">
 							<div class="col-4 border-top border-right" style="background-color: RGBA(204, 204, 255)">
+								<i style="color: red; margin-right: .1em; cursor: pointer;" class="fa fa-close fa-lg" @click="onDeleteAttachment(index)"></i>
 								Attachment {{ index + 1 }}:
 							</div>
 							<div class="col-8 border-top" style="background-color: RGBA(221, 238, 187); word-wrap: break-word;">
@@ -71,21 +68,21 @@
 						</div>
 					</div>
 
+					<Panel header="Attachments" :toggleable="true" style="width: 100%;">
+						<div>
+							<input type="file" id="file" ref="file" multiple v-on:change="handleFileUpload()"/>
+						</div>
+					</Panel>
+
 				</div>
 			</div>
 		</div>
-
-		<Dialog header="Message confirmation" v-model:visible="logDeleteConfirmDisplay" :style="{ width: '100vw' }" :modal="true">
-            <div>
-                <i class="fa fa-exclamation-circle fa-2x" style="vertical-align: middle; color: orange"></i>
-                <span class="p-text-center ml-2" style="vertical-align: middle">Really delete this entry?</span>
-            </div>
-
-            <template #footer>
-                <Button label="Cancel" icon="pi pi-times" @click="logDeleteConfirmDisplay=false" class="p-button-text"/>
-                <Button label="OK" icon="pi pi-check" @click="deleteLog" />
-            </template>
-        </Dialog>
+		<div class="col-12">
+			<div style="padding-left: 1rem; padding-right: 1rem;" class="flex flex-wrap align-items-center justify-content-between gap-2">
+				<span></span>
+				<Button v-if="userInfo" label="Submit" icon="fa fa-paper-plane" rounded raised size="small" @click="submitLog()" />
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -97,9 +94,18 @@ export default {
 	data() {
         return {
             logbook: null,
-			log: {},
 			logId: null,
-			logDeleteConfirmDisplay: false,
+			log: {},
+			messageId: null,
+			entryTime: null,
+			author: null,
+			authorEmail: null,
+			category: null,
+			system: null,
+			subject: null,
+			text: null,
+			attachments: [],
+			submittingAttachments: [],
         }
     },
 	LogbookService: null,
@@ -108,11 +114,16 @@ export default {
 		this.logbookService = new LogbookService();
 
 		this.logbook = this.$route.params.logbook;
-		this.logId = this.$route.params.id;		
+		this.logId = this.$route.params.log;
 	},
 
 	mounted() {
-		this.loadData();
+		console.log(this.logId);
+		if(this.logId === 'new') {
+			this.initLog();
+		} else {
+			this.loadLog();
+		}
 	},
 
 	activated() {
@@ -122,11 +133,24 @@ export default {
     },
 
 	methods: {
-		loadData() {
+		initLog() {
+			this.entryTime = new Date();
+			this.author = this.userInfo.displayName;
+			this.authorEmail = this.userInfo.email;
+		},
+		loadLog() {
 			let loader = this.$loading.show();
 			this.logbookService.findSingleLog(this.logbook, this.logId)
 			.then(data => {
-				this.log = data;
+				this.messageId = data['$@MID@$'];
+				this.entryTime = data['Date'] || new Date();
+				this.author = data['Author'];
+				this.authorEmail = data['Author Email'];
+				this.category = data['Category'];
+				this.system = data['System'];
+				this.subject = data['Subject'];
+				this.text = data['Content'];
+				this.attachments = data['Attachment'];
 			}).catch(error => {
 				if(error.response) {
 					this.$toast.add({ severity: 'error', summary: 'log loading failure', detail: error.response.data.message });
@@ -137,32 +161,40 @@ export default {
 				loader.hide();
 			});
 		},
-		onEditClick() {
-			this.$router.push({name: 'logedit', params: { logbook: this.logbook, log: this.logId }});
-		},
-		onDeleteClick() {
-			this.logDeleteConfirmDisplay = true;
-		},
-		deleteLog() {
+		submitLog() {
 			let loader = this.$loading.show();
 
-			let messageId = this.log['$@MID@$'];
 			let formData = new FormData();
-			formData.append('edit_id', messageId);
-            // formData.append('Author', this.log['Author']);
-			// formData.append('Author_Email', this.log['Author Email']);
-			// formData.append('Category', this.log['Category']);
-			// formData.append('System', this.log['System']);
-			// formData.append('Subject', this.log['Subject']);
-			// formData.append('Text', this.log['Content']);
-			formData.append('jcmd', 'XDelete');
-			formData.append('cmd', 'Delete');
+			if(this.messageId) { // Editing log
+				formData.append('edit_id', this.messageId);
+				// formData.append('entry_date', this.entryTime);
+			}
+            formData.append('Author', this.author);
+			formData.append('Author_Email', this.authorEmail);
+			formData.append('Category', this.category);
+			formData.append('System', this.system);
+			formData.append('Subject', this.subject);
+			formData.append('Text', this.text);
+			formData.append('cmd', 'Submit');
 			formData.append('unm', this.userInfo.username);
 			formData.append('upwd', this.userInfo.pwHash);
 
+			// Existing attachments, some of which may have been deleted
+			// Attachment item example: http://elog.csns.ihep.ac.cn/Control+System/230331_071736/QQimage20230109094245.png
+			for(let i=0; i<this.attachments.length; i++) {
+				let length = this.attachments[i].split('/').length;
+				let part1 = this.attachments[i].split('/')[length - 2];
+				let part2 = this.attachments[i].split('/')[length - 1];
+                formData.append(`attachment${i}`, `${part1}_${part2}`);
+            }
+
+			// New attachments
+			for(let i=0; i<this.submittingAttachments.length; i++) {
+                formData.append('attachments', this.submittingAttachments[i]);
+            }
+
             this.logbookService.submitLogFormData(this.logbook, formData)
 			.then(() => {
-				this.logDeleteConfirmDisplay = false;
                 this.$router.push({name: 'logbook', params: { logbook: this.logbook }, query: { randomId: new Date().getTime() }});
             }).catch((error) => {
                 if(error.response) {
@@ -174,14 +206,16 @@ export default {
 				loader.hide();
 			});
 		},
+		onDeleteAttachment(index) {
+			this.attachments.splice(index, 1);
+		},
+		handleFileUpload(){
+            this.submittingAttachments = this.$refs.file.files;
+        },
 		isImageFile(url) {
 			let imageExtensions = ['JPG', 'jpg', 'JPEG', 'jpeg', 'PNG', 'png', 'GIF', 'gif', 'BMP', 'bmp'];
 			let ext = url.split('.').pop();
 			return imageExtensions.includes(ext) ? true : false;
-		},
-		isDraft(log) {
-			// If 'Date' is empty or 'Draft' is not empty
-			return !log['Date'] || log['Draft'];
 		},
 		showDate(value) {
             return dateFormat(value, "yyyy-mm-dd");
@@ -198,9 +232,9 @@ export default {
 		userInfo() {
             return this.$store.state.authentication.user;
         },
-		canEdit() {
-			return this.userInfo && this.log && this.userInfo.email === this.log['Author Email'];
-		},
+		logOptions() {
+			return this.$store.state.authentication.options;
+		}
     }
 
 }

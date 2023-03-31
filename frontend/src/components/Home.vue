@@ -82,7 +82,7 @@ export default {
 		},
 		onLogbookClick(name) {
 			name = name.replace(' ', '+');
-			this.$router.push({name: 'logbook', params: { logbook: name }});
+			this.$router.push({name: 'logbook', params: { logbook: name }, query: { randomId: new Date().getTime() }});
 		}
 	},
 
@@ -101,6 +101,5 @@ export default {
 ::v-deep(.p-panel-content) {
 	background-color: RGB(247, 247, 247);
 }
-
 
 </style>
