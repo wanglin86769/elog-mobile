@@ -45,7 +45,6 @@ router.post('/', async function(req, res, next) {
         let data = response.data;
         let status = response.status;
         let headers = response.headers;
-        // console.log(response);
 
         let successPattern = /<html>redir<\/html>/;
         let failurePattern = /<td class="dlgerror">Invalid user name or password!<\/td>/;
@@ -84,7 +83,6 @@ router.post('/', async function(req, res, next) {
         if(!session) {
             return res.status(401).send({ auth: false, user: null, options: null, message: "Session is not obtained from elog server" });
         }
-        // console.log(session);
 
         // Access the logbook page one time to check whether login is really successful
         response = await axios.get(url, {
@@ -95,7 +93,6 @@ router.post('/', async function(req, res, next) {
         if(!response || !response.data || !response.status) {
             return res.status(500).json({ auth: false, user: null, options: null, message: 'Logbook page is not obtained from the elog server' });
         }
-        // console.log(response);
         data = response.data;
         loggedInPattern = /<td class="title2">Logged in as .+<\/td>/;
         if(!loggedInPattern.test(data)) {
@@ -112,25 +109,10 @@ router.post('/', async function(req, res, next) {
         if(!response || !response.data || !response.status) {
             return res.status(500).json({ auth: false, user: null, options: null, message: 'Log creation page is not obtained from the elog server' });
         }
-        // console.log(response);
         data = response.data;
         if(!loggedInPattern.test(data)) {
             return res.status(500).json({ auth: false, user: null, options: null, message: 'Log creation page is not displayed as a logged-in user' });
         }
-
-        // let root = HTMLParser.parse(data);
-        // let values = root.querySelectorAll('.attribname');
-        // for(let value of values) {
-        //     if(/Author\*{0,1}:/.test(value.text)) {
-        //         console.log(value.nextElementSibling.childNodes[1]._rawAttrs.value);
-        //     } else if(/Author Email\*{0,1}:/.test(value.text)) {
-        //         console.log(value.nextElementSibling.childNodes[1]._rawAttrs.href.replace('mailto:', ''));
-        //     } else if(/Category\*{0,1}:/.test(value.text)) {
-        //         console.log(value.text);
-        //     } else if(/System\*{0,1}:/.test(value.text)) {
-        //         console.log(value.nextElementSibling.childNodes[1]);
-        //     }
-        // }
 
         let author;
         let authorEmail;
@@ -163,10 +145,6 @@ router.post('/', async function(req, res, next) {
                 }
             }
         });
-        // console.log(author);
-        // console.log(authorEmail);
-        // console.log(optionCategory);
-        // console.log(optionSystem);
 
         /** 
          * $5 means sha256
