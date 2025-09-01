@@ -159,15 +159,21 @@ exports.findLogs = async (req, res, next) => {
     }
 
     try {
-        let url = `${elogConfig.url}/${logbook}/page`;
+        let page = first / rows + 1;
+        let url = `${elogConfig.url}/${logbook}/page${page}?npp=${rows}`;
 
         let response = await axios.get(url);
         if(!response || !response.data) {
             return res.status(500).json({message: 'Logs HTML raw data is not obtained from the elog server'});
         }
+        const html = response.data;
+
+        // Extract total entries
+        const entryMatch = html.match(/<b>\s*(\d+)\s+Entries\s*<\/b>/i);
+        const count = entryMatch ? parseInt(entryMatch[1], 10) : 0;
 
         // Obtain logs HTML raw data
-        let root = HTMLParser.parse(response.data);
+        let root = HTMLParser.parse(html);
         let values = root.querySelectorAll('.list1 > a, .list2 > a, .listdraft > a');
         const ids = new Set();
         for(let value of values) {
@@ -179,11 +185,9 @@ exports.findLogs = async (req, res, next) => {
         }
 
         let idArray = Array.from(ids);
-        let count = idArray.length;
-        let requestedIdArray = idArray.slice(first, first + rows);
 
         let promiseArray = [];
-        for(let id of requestedIdArray) {
+        for(let id of idArray) {
             url = `${elogConfig.url}/${logbook}/${id}?cmd=download`;
             promiseArray.push(axios.get(url));
         }
